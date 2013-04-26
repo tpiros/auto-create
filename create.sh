@@ -7,7 +7,7 @@ phelp() {
 	echo "Script for automatic Virtual Machine creation for ESX"
 	echo "Usage: ./create.sh options: n <|c|i|r|s>"
 	echo "Where n: Name of VM (required), c: Number of virtual CPUs, i: location of an ISO image, r: RAM size in MB, s: Disk size in GB"
-	echo "Default values are: CPU: 2, RAM: 4096MB, HDD-SIZE: 50GB"
+	echo "Default values are: CPU: 2, RAM: 4096MB, HDD-SIZE: 20GB"
 }
 
 #Setting up some of the default variables
