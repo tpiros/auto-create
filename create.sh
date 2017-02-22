@@ -5,9 +5,9 @@
 
 phelp() {
 	echo "Script for automatic Virtual Machine creation for ESX"
-	echo "Usage: ./create.sh options: n <|c|i|r|s>"
-	echo "Where n: Name of VM (required), c: Number of virtual CPUs, i: location of an ISO image, r: RAM size in MB, s: Disk size in GB"
-	echo "Default values are: CPU: 2, RAM: 4096MB, HDD-SIZE: 20GB"
+	echo "Usage: $(basename $0) options: n <|c|i|r|s|N>"
+	echo "Where n: Name of VM (required), c: Number of virtual CPUs, i: location of an ISO image, r: RAM size in MB, s: Disk size in GB, N: Network name (can be specified multiple times)"
+	echo "Default values are: CPU: 2, RAM: 4096MB, HDD-SIZE: 20GB, no network connection"
 }
 
 #Setting up some of the default variables
@@ -18,13 +18,15 @@ ISO=""
 FLAG=true
 ERR=false
 
+ethernet_idx=0
+
 #Error checking will take place as well
 #the NAME has to be filled out (i.e. the $NAME variable needs to exist)
 #The CPU has to be an integer and it has to be between 1 and 32. Modify the if statement if you want to give more than 32 cores to your Virtual Machine, and also email me pls :)
 #You need to assign more than 1 MB of ram, and of course RAM has to be an integer as well
 #The HDD-size has to be an integer and has to be greater than 0.
 #If the ISO parameter is added, we are checking for an actual .iso extension
-while getopts n:c:i:r:s: option
+while getopts n:c:i:r:s:N: option
 do
         case $option in
                 n)
@@ -78,6 +80,12 @@ do
 						MSG="$MSG | The HDD size has to be an integer."
 					fi
 					;;
+                N)
+					NET_NAME=${OPTARG}
+					# Create a network record
+					NET_DEFS="$NET_DEFS\nethernet${ethernet_idx}.present = \"TRUE\"\nethernet${ethernet_idx}.virtualDev = \"e1000\"\nethernet${ethernet_idx}.networkName = \"${NET_NAME}\"\nethernet${ethernet_idx}.generatedAddressOffset = \"0\""
+					ethernet_idx=$(($ethernet_idx + 1))
+					;;
 				\?) echo "Unknown option: -$OPTARG" >&2; phelp; exit 1;;
         		:) echo "Missing option argument for -$OPTARG" >&2; phelp; exit 1;;
         		*) echo "Unimplimented option: -$OPTARG" >&2; phelp; exit 1;;
@@ -103,6 +111,7 @@ fi
 mkdir ${NAME}
 
 #Creating the actual Virtual Disk file (the HDD) with vmkfstools
+# Create the VMDK only when it doesn't exist yet
 vmkfstools -c "${SIZE}"G -a lsilogic $NAME/$NAME.vmdk
 
 #Creating the config file
@@ -112,7 +121,7 @@ touch $NAME/$NAME.vmx
 cat << EOF > $NAME/$NAME.vmx
 
 config.version = "8"
-virtualHW.version = "7"
+virtualHW.version = "13"
 vmci0.present = "TRUE"
 displayName = "${NAME}"
 floppy0.present = "FALSE"
@@ -140,13 +149,10 @@ pciBridge6.functions = "8"
 pciBridge7.present = "TRUE"
 pciBridge7.virtualDev = "pcieRootPort"
 pciBridge7.functions = "8"
-ethernet0.pciSlotNumber = "32"
-ethernet0.present = "TRUE"
-ethernet0.virtualDev = "e1000"
-ethernet0.networkName = "Inside"
-ethernet0.generatedAddressOffset = "0"
 guestOS = "other26xlinux-64"
 EOF
+
+echo -e "$NET_DEFS" >> $NAME/$NAME.vmx
 
 #Adding Virtual Machine to VM register - modify your path accordingly!!
 MYVM=`vim-cmd solo/registervm /vmfs/volumes/datastore1/${NAME}/${NAME}.vmx`
