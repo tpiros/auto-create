@@ -83,7 +83,7 @@ do
                 N)
 					NET_NAME=${OPTARG}
 					# Create a network record
-					NET_DEFS="$NET_DEFS\nethernet${ethernet_idx}.present = \"TRUE\"\nethernet${ethernet_idx}.virtualDev = \"e1000\"\nethernet${ethernet_idx}.networkName = \"${NET_NAME}\"\nethernet${ethernet_idx}.generatedAddressOffset = \"0\""
+					NET_DEFS="$NET_DEFS\nethernet${ethernet_idx}.present = \"TRUE\"\nethernet${ethernet_idx}.virtualDev = \"vmxnet3\"\nethernet${ethernet_idx}.networkName = \"${NET_NAME}\"\nethernet${ethernet_idx}.generatedAddressOffset = \"0\""
 					ethernet_idx=$(($ethernet_idx + 1))
 					;;
 				\?) echo "Unknown option: -$OPTARG" >&2; phelp; exit 1;;
