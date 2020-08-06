@@ -94,22 +94,22 @@ if $ERR; then
 	exit 1
 fi
 
-if [ -d "$NAME" ]; then
-	echo "Directory - ${NAME} already exists, can't recreate it."
+if [ -d "/vmfs/volumes/datastore1/$NAME" ]; then
+	echo "Directory - /vmfs/volumes/datastore1/${NAME} already exists, can't recreate it."
 	exit
 fi
 
 #Creating the folder for the Virtual Machine
-mkdir ${NAME}
+mkdir /vmfs/volumes/datastore1/${NAME}
 
 #Creating the actual Virtual Disk file (the HDD) with vmkfstools
-vmkfstools -c "${SIZE}"G -a lsilogic $NAME/$NAME.vmdk
+vmkfstools -c "${SIZE}"G -a lsilogic /vmfs/volumes/datastore1/$NAME/$NAME.vmdk
 
 #Creating the config file
-touch $NAME/$NAME.vmx
+touch /vmfs/volumes/datastore1/$NAME/$NAME.vmx
 
 #writing information into the configuration file
-cat << EOF > $NAME/$NAME.vmx
+cat << EOF > /vmfs/volumes/datastore1/$NAME/$NAME.vmx
 
 config.version = "8"
 virtualHW.version = "7"
